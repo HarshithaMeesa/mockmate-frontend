@@ -8,7 +8,7 @@ from question_generator import generate_questions
 from evaluator import evaluate_answer
 from fastapi import Body
 
-from behavior import detect_face
+
 
 app = FastAPI()
 
@@ -60,12 +60,7 @@ def evaluate(data: dict = Body(...)):
 
     return result
 
-@app.get("/behavior")
-def behavior():
 
-    result = detect_face()
-
-    return result
 
 import uuid
 from datetime import datetime

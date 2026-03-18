@@ -6,7 +6,4 @@ scikit-learn
 pdfplumber
 python-docx
 mysql-connector-python
-opencv-python
-mediapipe==0.8.10
-numpy
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
