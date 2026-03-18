@@ -7,50 +7,55 @@ function InterviewSelect(){
   const navigate = useNavigate();
 
   // 🟢 Student Practice Mode
-  const startInterview = (role)=>{
-    navigate("/room",{state:{role:role}});
+  const startInterview = (role) => {
+    navigate("/room", { state: { role: role } });
   };
 
-  // 🔵 Teacher Mode - Create Link
+  // 🔵 Lecturer Mode
   const createSession = async (role) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          role: role,
+          time: new Date().toISOString(),
+          questions: []
+        })
+      });
 
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        role: role,
-        time: new Date().toISOString(),
-        questions: []
-      })
-    });
+      const data = await response.json();
 
-    const data = await response.json();
+      await navigator.clipboard.writeText(data.link);
 
-    // ✅ Copy to clipboard
-    await navigator.clipboard.writeText(data.link);
+      const joinNow = window.confirm(
+        `Interview link copied to clipboard!\n\n${data.link}\n\nPress OK to join as lecturer now.`
+      );
 
-    // ✅ Show message
-    alert("Link copied to clipboard!\n\n" + data.link);
+      if (joinNow) {
+        navigate("/live-room", {
+          state: {
+            sessionId: data.session_id,
+            userType: "lecturer",
+            interviewRole: role
+          }
+        });
+      }
 
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Failed to create link");
-  }
-};
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to create link");
+    }
+  };
 
   return(
-
     <div>
-
       <Navbar/>
 
       <div style={{padding:"40px"}}>
-
         <h1>Select Interview Type</h1>
-
         <p>Choose the role you want to practice for.</p>
 
         {/* 🟢 STUDENT MODE */}
@@ -60,39 +65,37 @@ function InterviewSelect(){
           gridTemplateColumns:"repeat(2, 250px)",
           gap:"20px"
         }}>
-
           <button
-            onClick={()=>startInterview("Data Analyst")}
+            onClick={() => startInterview("Data Analyst")}
             style={cardStyle}
           >
             Data Analyst
           </button>
 
           <button
-            onClick={()=>startInterview("Data Scientist")}
+            onClick={() => startInterview("Data Scientist")}
             style={cardStyle}
           >
             Data Scientist
           </button>
 
           <button
-            onClick={()=>startInterview("Software Engineer")}
+            onClick={() => startInterview("Software Engineer")}
             style={cardStyle}
           >
             Software Engineer
           </button>
 
           <button
-            onClick={()=>startInterview("Custom Interview")}
+            onClick={() => startInterview("Custom Interview")}
             style={cardStyle}
           >
             Custom Interview
           </button>
-
         </div>
 
-        {/* 🔵 TEACHER MODE */}
-        <h2 style={{ marginTop: "60px" }}>Conduct Interview (Teacher)</h2>
+        {/* 🔵 LECTURER MODE */}
+        <h2 style={{ marginTop: "60px" }}>Conduct Interview (Lecturer)</h2>
 
         <button
           onClick={() => createSession("Software Engineer")}
@@ -100,16 +103,12 @@ function InterviewSelect(){
         >
           Generate Interview Link
         </button>
-
       </div>
-
     </div>
-
-  )
-
+  );
 }
 
-const cardStyle={
+const cardStyle = {
   padding:"30px",
   background:"#f3f3f3",
   border:"1px solid #ddd",
@@ -117,7 +116,7 @@ const cardStyle={
   fontSize:"16px"
 };
 
-const linkStyle={
+const linkStyle = {
   padding:"15px",
   background:"green",
   color:"white",

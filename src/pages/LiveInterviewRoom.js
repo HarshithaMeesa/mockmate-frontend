@@ -2,9 +2,12 @@ import React, { useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import { useLocation } from "react-router-dom";
 
-function LiveInterviewRoom(){
+function LiveInterviewRoom() {
   const location = useLocation();
+
   const sessionId = location.state?.sessionId;
+  const userType = location.state?.userType || "student";
+  const interviewRole = location.state?.interviewRole || "";
 
   const socketRef = useRef(null);
   const peerRef = useRef(null);
@@ -15,13 +18,20 @@ function LiveInterviewRoom(){
     const videoElement = videoRef.current;
     const screenElement = screenRef.current;
 
-    socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_URL}/ws/${sessionId}`);
+    if (!sessionId) return;
+
+    socketRef.current = new WebSocket(
+      `${process.env.REACT_APP_WS_URL}/ws/${sessionId}`
+    );
 
     socketRef.current.onmessage = async (event) => {
       const data = JSON.parse(event.data);
 
       if (data.offer && peerRef.current) {
-        await peerRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+        await peerRef.current.setRemoteDescription(
+          new RTCSessionDescription(data.offer)
+        );
+
         const answer = await peerRef.current.createAnswer();
         await peerRef.current.setLocalDescription(answer);
 
@@ -29,11 +39,15 @@ function LiveInterviewRoom(){
       }
 
       if (data.answer && peerRef.current) {
-        await peerRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+        await peerRef.current.setRemoteDescription(
+          new RTCSessionDescription(data.answer)
+        );
       }
 
       if (data.candidate && peerRef.current) {
-        await peerRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+        await peerRef.current.addIceCandidate(
+          new RTCIceCandidate(data.candidate)
+        );
       }
     };
 
@@ -50,7 +64,7 @@ function LiveInterviewRoom(){
 
         peerRef.current = new RTCPeerConnection();
 
-        media.getTracks().forEach(track => {
+        media.getTracks().forEach((track) => {
           peerRef.current.addTrack(track, media);
         });
 
@@ -63,12 +77,13 @@ function LiveInterviewRoom(){
 
         peerRef.current.onicecandidate = (event) => {
           if (event.candidate && socketRef.current) {
-            socketRef.current.send(JSON.stringify({
-              candidate: event.candidate
-            }));
+            socketRef.current.send(
+              JSON.stringify({
+                candidate: event.candidate
+              })
+            );
           }
         };
-
       } catch (err) {
         console.error("Error accessing camera:", err);
       }
@@ -81,11 +96,11 @@ function LiveInterviewRoom(){
       if (peerRef.current) peerRef.current.close();
 
       if (videoElement && videoElement.srcObject) {
-        videoElement.srcObject.getTracks().forEach(track => track.stop());
+        videoElement.srcObject.getTracks().forEach((track) => track.stop());
       }
 
       if (screenElement && screenElement.srcObject) {
-        screenElement.srcObject.getTracks().forEach(track => track.stop());
+        screenElement.srcObject.getTracks().forEach((track) => track.stop());
       }
     };
   }, [sessionId]);
@@ -108,7 +123,6 @@ function LiveInterviewRoom(){
       if (screenRef.current) {
         screenRef.current.srcObject = displayStream;
       }
-
     } catch (err) {
       console.error("Screen share error:", err);
     }
@@ -116,83 +130,100 @@ function LiveInterviewRoom(){
 
   return (
     <div>
-      <Navbar/>
+      <Navbar />
 
-      <div style={{ padding:"30px" }}>
+      <div style={{ padding: "30px" }}>
         <h1>Live Interview Room</h1>
 
-        <div style={{
-          display:"flex",
-          gap:"20px",
-          marginTop:"30px"
-        }}>
+        <p>
+          <b>You are:</b> {userType}
+        </p>
+
+        <p>
+          <b>Interview Role:</b> {interviewRole || "Not specified"}
+        </p>
+
+        <p>
+          <b>Session ID:</b> {sessionId}
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginTop: "30px"
+          }}
+        >
           <div>
-            <h3>You</h3>
+            <h3>{userType === "lecturer" ? "Lecturer" : "Student"} (You)</h3>
             <video
               ref={videoRef}
               autoPlay
               muted
               style={{
-                width:"300px",
-                borderRadius:"10px",
-                background:"black"
+                width: "300px",
+                borderRadius: "10px",
+                background: "black"
               }}
             />
           </div>
 
           <div>
-            <h3>Interviewer</h3>
+            <h3>
+              {userType === "lecturer" ? "Student" : "Interviewer"}
+            </h3>
             <video
               id="remoteVideo"
               autoPlay
               style={{
-                width:"300px",
-                height:"200px",
-                borderRadius:"10px",
-                background:"black"
+                width: "300px",
+                height: "200px",
+                borderRadius: "10px",
+                background: "black"
               }}
             />
           </div>
         </div>
 
-        <div style={{ marginTop:"30px" }}>
+        <div style={{ marginTop: "30px" }}>
           <button
             onClick={startCall}
             style={{
-              padding:"10px",
-              background:"green",
-              color:"white",
-              border:"none",
-              marginRight:"10px"
+              padding: "10px",
+              background: "green",
+              color: "white",
+              border: "none",
+              marginRight: "10px"
             }}
           >
-            Start Call
+            {userType === "lecturer"
+              ? "Start Call as Lecturer"
+              : "Start Call as Student"}
           </button>
 
           <button
             onClick={startScreenShare}
             style={{
-              padding:"10px",
-              background:"blue",
-              color:"white",
-              border:"none"
+              padding: "10px",
+              background: "blue",
+              color: "white",
+              border: "none"
             }}
           >
             Share Screen
           </button>
 
-          <div style={{ marginTop:"20px" }}>
+          <div style={{ marginTop: "20px" }}>
             <video
               ref={screenRef}
               autoPlay
               style={{
-                width:"500px",
-                borderRadius:"10px"
+                width: "500px",
+                borderRadius: "10px"
               }}
             />
           </div>
         </div>
-
       </div>
     </div>
   );

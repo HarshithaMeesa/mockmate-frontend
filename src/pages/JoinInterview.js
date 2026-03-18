@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 function JoinInterview() {
-
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -14,11 +13,12 @@ function JoinInterview() {
       .then(data => setSession(data));
   }, [id]);
 
-  const startInterview = () => {
+  const joinAsStudent = () => {
     navigate("/live-room", {
       state: {
         sessionId: id,
-        role: session.role
+        userType: "student",
+        interviewRole: session.role
       }
     });
   };
@@ -26,15 +26,14 @@ function JoinInterview() {
   if (!session) return <h2>Loading interview...</h2>;
 
   return (
-    <div style={{ padding: "40px", textAlign:"center" }}>
-
+    <div style={{ padding: "40px", textAlign: "center" }}>
       <h1>Join Interview</h1>
 
-      <p><b>Role:</b> {session.role}</p>
+      <p><b>Interview Role:</b> {session.role}</p>
       <p><b>Time:</b> {session.time}</p>
 
       <button
-        onClick={startInterview}
+        onClick={joinAsStudent}
         style={{
           padding: "12px",
           background: "green",
@@ -43,9 +42,8 @@ function JoinInterview() {
           cursor: "pointer"
         }}
       >
-        Join Interview
+        Join as Student
       </button>
-
     </div>
   );
 }
