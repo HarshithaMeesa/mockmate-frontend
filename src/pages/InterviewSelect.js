@@ -13,8 +13,6 @@ function InterviewSelect() {
   // Lecturer mode
   const createSession = async (role) => {
   try {
-    const newTab = window.open("", "_blank");
-
     const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
       method: "POST",
       headers: {
@@ -34,13 +32,14 @@ function InterviewSelect() {
 
     await navigator.clipboard.writeText(studentLink);
 
-    if (newTab) {
-      newTab.location.href = roomLink;
+    const openNow = window.confirm(
+      `Student link copied:\n\n${studentLink}\n\nLecturer room:\n${roomLink}\n\nPress OK to open lecturer room now.`
+    );
+
+    if (openNow) {
+      window.location.href = roomLink;
     }
 
-    alert(
-      `Interview link copied for student:\n\n${studentLink}\n\nLecturer meeting room:\n${roomLink}`
-    );
   } catch (error) {
     console.error("Error:", error);
     alert("Failed to create interview link");
