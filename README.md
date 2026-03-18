@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -68,3 +69,6 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+=======
+# AI-DRIVEN-SMART-MOCK-INTERVIEW-ASSESSMENT-PLATFORM-FOR-HOLISTIC-STUDENT-JOB-PREPARATION
+>>>>>>> 327714b7bc66cd0a2c632f21411bb7ae148f1704
