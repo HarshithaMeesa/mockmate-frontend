@@ -2,16 +2,15 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 
-function InterviewSelect(){
-
+function InterviewSelect() {
   const navigate = useNavigate();
 
-  // 🟢 Student Practice Mode
+  // Student practice mode
   const startInterview = (role) => {
     navigate("/room", { state: { role: role } });
   };
 
-  // 🔵 Lecturer Mode
+  // Lecturer mode
   const createSession = async (role) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
@@ -28,43 +27,43 @@ function InterviewSelect(){
 
       const data = await response.json();
 
+      // copy link
       await navigator.clipboard.writeText(data.link);
 
-      const joinNow = window.confirm(
-        `Interview link copied to clipboard!\n\n${data.link}\n\nPress OK to join as lecturer now.`
-      );
+      // show link
+      alert(`Interview link copied:\n\n${data.link}`);
 
-      if (joinNow) {
-        navigate("/live-room", {
-          state: {
-            sessionId: data.session_id,
-            userType: "lecturer",
-            interviewRole: role
-          }
-        });
-      }
+      // lecturer joins immediately
+      navigate("/live-room", {
+        state: {
+          sessionId: data.session_id,
+          userType: "lecturer",
+          interviewRole: role
+        }
+      });
 
     } catch (error) {
       console.error("Error:", error);
-      alert("Failed to create link");
+      alert("Failed to create interview link");
     }
   };
 
-  return(
+  return (
     <div>
-      <Navbar/>
+      <Navbar />
 
-      <div style={{padding:"40px"}}>
+      <div style={{ padding: "40px" }}>
         <h1>Select Interview Type</h1>
         <p>Choose the role you want to practice for.</p>
 
-        {/* 🟢 STUDENT MODE */}
-        <div style={{
-          marginTop:"40px",
-          display:"grid",
-          gridTemplateColumns:"repeat(2, 250px)",
-          gap:"20px"
-        }}>
+        <div
+          style={{
+            marginTop: "40px",
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 250px)",
+            gap: "20px"
+          }}
+        >
           <button
             onClick={() => startInterview("Data Analyst")}
             style={cardStyle}
@@ -94,7 +93,6 @@ function InterviewSelect(){
           </button>
         </div>
 
-        {/* 🔵 LECTURER MODE */}
         <h2 style={{ marginTop: "60px" }}>Conduct Interview (Lecturer)</h2>
 
         <button
@@ -109,20 +107,20 @@ function InterviewSelect(){
 }
 
 const cardStyle = {
-  padding:"30px",
-  background:"#f3f3f3",
-  border:"1px solid #ddd",
-  cursor:"pointer",
-  fontSize:"16px"
+  padding: "30px",
+  background: "#f3f3f3",
+  border: "1px solid #ddd",
+  cursor: "pointer",
+  fontSize: "16px"
 };
 
 const linkStyle = {
-  padding:"15px",
-  background:"green",
-  color:"white",
-  border:"none",
-  cursor:"pointer",
-  marginTop:"10px"
+  padding: "15px",
+  background: "green",
+  color: "white",
+  border: "none",
+  cursor: "pointer",
+  marginTop: "10px"
 };
 
 export default InterviewSelect;
