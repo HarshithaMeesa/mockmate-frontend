@@ -11,8 +11,8 @@ function LiveInterviewRoom(){
   const videoRef = useRef(null);
   const screenRef = useRef(null);
 
-  const [stream, setStream] = useState(null);
-  const [screenStream, setScreenStream] = useState(null);
+//   const [stream, setStream] = useState(null);
+//   const [screenStream, setScreenStream] = useState(null);
 
   useEffect(() => {
     socketRef.current = new WebSocket(`ws://127.0.0.1:8000/ws/${sessionId}`);
@@ -59,7 +59,7 @@ function LiveInterviewRoom(){
       });
 
       videoRef.current.srcObject = media;
-      setStream(media);
+    //   setStream(media);
 
       peerRef.current = new RTCPeerConnection();
 
@@ -103,7 +103,7 @@ function LiveInterviewRoom(){
       });
 
       screenRef.current.srcObject = displayStream;
-      setScreenStream(displayStream);
+    //   setScreenStream(displayStream);
 
     } catch (err) {
       console.error("Screen share error:", err);

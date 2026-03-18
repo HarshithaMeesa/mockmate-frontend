@@ -1,6 +1,5 @@
 import BehaviorMonitor from "../components/BehaviorMonitor";
-import React, { useState , useEffect} from "react";
-import Navbar from "../components/Navbar";
+import React, { useState, useEffect, useMemo } from "react";import Navbar from "../components/Navbar";
 // import CameraView from "../components/CameraView";
 import Avatar from "../components/Avatar";
 import { useNavigate } from "react-router-dom";
@@ -50,13 +49,15 @@ const stopRecording = () => {
   setRecording(false);
   evaluateAnswer(questions[index], transcript);
 };
+ const questions = useMemo(() => {
   const storedQuestions = JSON.parse(localStorage.getItem("questions"));
 
-const questions = storedQuestions || [
- "Tell me about yourself",
- "What are your strengths",
- "Why do you want this job"
-];
+  return storedQuestions || [
+    "Tell me about yourself",
+    "What are your strengths",
+    "Why do you want this job"
+  ];
+}, []);
 
   const [index,setIndex] = useState(0);
 
