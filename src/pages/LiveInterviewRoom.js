@@ -11,107 +11,145 @@ function LiveInterviewRoom() {
 
   const socketRef = useRef(null);
   const peerRef = useRef(null);
-  const videoRef = useRef(null);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
   const screenRef = useRef(null);
 
   useEffect(() => {
-    const videoElement = videoRef.current;
-    const screenElement = screenRef.current;
+    const localVideo = localVideoRef.current;
+    const remoteVideo = remoteVideoRef.current;
+    const screenVideo = screenRef.current;
 
     if (!sessionId) return;
+
+    let localStream = null;
 
     socketRef.current = new WebSocket(
       `${process.env.REACT_APP_WS_URL}/ws/${sessionId}`
     );
 
-    socketRef.current.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
+    const createPeerConnection = () => {
+      if (peerRef.current) return peerRef.current;
 
-      if (data.offer && peerRef.current) {
-        await peerRef.current.setRemoteDescription(
-          new RTCSessionDescription(data.offer)
-        );
+      peerRef.current = new RTCPeerConnection({
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:stun1.l.google.com:19302" }
+        ]
+      });
 
-        const answer = await peerRef.current.createAnswer();
-        await peerRef.current.setLocalDescription(answer);
+      peerRef.current.ontrack = (event) => {
+        if (remoteVideo) {
+          remoteVideo.srcObject = event.streams[0];
+        }
+      };
 
-        socketRef.current.send(JSON.stringify({ answer }));
-      }
+      peerRef.current.onicecandidate = (event) => {
+        if (event.candidate && socketRef.current?.readyState === WebSocket.OPEN) {
+          socketRef.current.send(
+            JSON.stringify({
+              type: "candidate",
+              candidate: event.candidate
+            })
+          );
+        }
+      };
 
-      if (data.answer && peerRef.current) {
-        await peerRef.current.setRemoteDescription(
-          new RTCSessionDescription(data.answer)
-        );
-      }
-
-      if (data.candidate && peerRef.current) {
-        await peerRef.current.addIceCandidate(
-          new RTCIceCandidate(data.candidate)
-        );
-      }
+      return peerRef.current;
     };
 
     const startMedia = async () => {
       try {
-        const media = await navigator.mediaDevices.getUserMedia({
+        localStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
 
-        if (videoElement) {
-          videoElement.srcObject = media;
+        if (localVideo) {
+          localVideo.srcObject = localStream;
         }
 
-        peerRef.current = new RTCPeerConnection();
+        const pc = createPeerConnection();
 
-        media.getTracks().forEach((track) => {
-          peerRef.current.addTrack(track, media);
+        localStream.getTracks().forEach((track) => {
+          pc.addTrack(track, localStream);
         });
-
-        peerRef.current.ontrack = (event) => {
-          const remoteVideo = document.getElementById("remoteVideo");
-          if (remoteVideo) {
-            remoteVideo.srcObject = event.streams[0];
-          }
-        };
-
-        peerRef.current.onicecandidate = (event) => {
-          if (event.candidate && socketRef.current) {
-            socketRef.current.send(
-              JSON.stringify({
-                candidate: event.candidate
-              })
-            );
-          }
-        };
       } catch (err) {
-        console.error("Error accessing camera:", err);
+        console.error("Error accessing camera/mic:", err);
       }
     };
 
-    startMedia();
+    socketRef.current.onopen = async () => {
+      console.log("WebSocket connected");
+      await startMedia();
+    };
+
+    socketRef.current.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
+      const pc = createPeerConnection();
+
+      try {
+        if (data.type === "offer") {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+
+          socketRef.current.send(
+            JSON.stringify({
+              type: "answer",
+              answer
+            })
+          );
+        }
+
+        if (data.type === "answer") {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+        }
+
+        if (data.type === "candidate" && data.candidate) {
+          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      } catch (err) {
+        console.error("WebRTC signaling error:", err);
+      }
+    };
 
     return () => {
       if (socketRef.current) socketRef.current.close();
       if (peerRef.current) peerRef.current.close();
 
-      if (videoElement && videoElement.srcObject) {
-        videoElement.srcObject.getTracks().forEach((track) => track.stop());
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop());
       }
 
-      if (screenElement && screenElement.srcObject) {
-        screenElement.srcObject.getTracks().forEach((track) => track.stop());
+      if (localVideo && localVideo.srcObject) {
+        localVideo.srcObject.getTracks().forEach((track) => track.stop());
+      }
+
+      if (screenVideo && screenVideo.srcObject) {
+        screenVideo.srcObject.getTracks().forEach((track) => track.stop());
       }
     };
   }, [sessionId]);
 
   const startCall = async () => {
     if (!peerRef.current || !socketRef.current) return;
+    if (socketRef.current.readyState !== WebSocket.OPEN) return;
 
-    const offer = await peerRef.current.createOffer();
-    await peerRef.current.setLocalDescription(offer);
+    try {
+      const offer = await peerRef.current.createOffer();
+      await peerRef.current.setLocalDescription(offer);
 
-    socketRef.current.send(JSON.stringify({ offer }));
+      socketRef.current.send(
+        JSON.stringify({
+          type: "offer",
+          offer
+        })
+      );
+    } catch (err) {
+      console.error("Start call error:", err);
+    }
   };
 
   const startScreenShare = async () => {
@@ -135,17 +173,9 @@ function LiveInterviewRoom() {
       <div style={{ padding: "30px" }}>
         <h1>Live Interview Room</h1>
 
-        <p>
-          <b>You are:</b> {userType}
-        </p>
-
-        <p>
-          <b>Interview Role:</b> {interviewRole || "Not specified"}
-        </p>
-
-        <p>
-          <b>Session ID:</b> {sessionId}
-        </p>
+        <p><b>You are:</b> {userType}</p>
+        <p><b>Interview Role:</b> {interviewRole || "Not specified"}</p>
+        <p><b>Session ID:</b> {sessionId}</p>
 
         <div
           style={{
@@ -157,9 +187,10 @@ function LiveInterviewRoom() {
           <div>
             <h3>{userType === "lecturer" ? "Lecturer" : "Student"} (You)</h3>
             <video
-              ref={videoRef}
+              ref={localVideoRef}
               autoPlay
               muted
+              playsInline
               style={{
                 width: "300px",
                 borderRadius: "10px",
@@ -169,12 +200,11 @@ function LiveInterviewRoom() {
           </div>
 
           <div>
-            <h3>
-              {userType === "lecturer" ? "Student" : "Interviewer"}
-            </h3>
+            <h3>{userType === "lecturer" ? "Student" : "Lecturer"}</h3>
             <video
-              id="remoteVideo"
+              ref={remoteVideoRef}
               autoPlay
+              playsInline
               style={{
                 width: "300px",
                 height: "200px",
@@ -217,6 +247,7 @@ function LiveInterviewRoom() {
             <video
               ref={screenRef}
               autoPlay
+              playsInline
               style={{
                 width: "500px",
                 borderRadius: "10px"
