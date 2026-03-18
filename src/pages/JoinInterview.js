@@ -9,7 +9,7 @@ function JoinInterview() {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/session/${id}`)
+    fetch(`${process.env.REACT_APP_API_URL}/session/${id}`)
       .then(res => res.json())
       .then(data => setSession(data));
   }, [id]);

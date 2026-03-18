@@ -15,7 +15,7 @@ function InterviewSelect(){
   const createSession = async (role) => {
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/create-session", {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
