@@ -1,10 +1,10 @@
 import BehaviorMonitor from "../components/BehaviorMonitor";
 import React, { useState , useEffect} from "react";
 import Navbar from "../components/Navbar";
-import CameraView from "../components/CameraView";
+// import CameraView from "../components/CameraView";
 import Avatar from "../components/Avatar";
 import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+// import { useLocation } from "react-router-dom";
 
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -15,7 +15,7 @@ recognition.continuous = true;
 recognition.interimResults = true;
 
 function InterviewRoom(){
-  const location = useLocation();
+  
   const navigate = useNavigate();
 
  const [recording, setRecording] = useState(false);
@@ -81,13 +81,11 @@ const nextQuestion = () => {
   }
 
 };
-useEffect(() => {
-
+  useEffect(() => {
   if (questions.length > 0) {
     speakQuestion(questions[index], index);
   }
-
-}, [index]); 
+}, [index, questions]);
   // ✅ ONLY runs when index changes
 
   const evaluateAnswer = async (question, answer) => {
