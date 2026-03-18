@@ -18,7 +18,7 @@ function ResumeUpload(){
 
   try {
 
-    const response = await fetch("http://127.0.0.1:8000/upload_resume",{
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/upload_resume`, {
       method:"POST",
       body:formData
     });
