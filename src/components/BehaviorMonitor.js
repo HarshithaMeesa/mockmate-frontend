@@ -3,12 +3,11 @@ import { FaceDetection } from "@mediapipe/face_detection";
 import { Camera } from "@mediapipe/camera_utils";
 
 function BehaviorMonitor() {
-
   const videoRef = useRef(null);
 
   useEffect(() => {
-
-    if (!videoRef.current) return;
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
 
     let camera = null;
 
@@ -23,23 +22,19 @@ function BehaviorMonitor() {
     });
 
     faceDetection.onResults((results) => {
+      if (!videoElement) return;
 
-      if (!videoRef.current) return; // ✅ prevent crash
-
-      if (results.detections.length > 0) {
+      if (results.detections && results.detections.length > 0) {
         console.log("Face detected");
       } else {
         console.log("No face detected");
       }
-
     });
 
-    camera = new Camera(videoRef.current, {
+    camera = new Camera(videoElement, {
       onFrame: async () => {
-
-        if (!videoRef.current) return; // ✅ safety check
-
-        await faceDetection.send({ image: videoRef.current });
+        if (!videoElement) return;
+        await faceDetection.send({ image: videoElement });
       },
       width: 640,
       height: 480
@@ -47,21 +42,17 @@ function BehaviorMonitor() {
 
     camera.start();
 
-    // 🔥 CLEANUP (VERY IMPORTANT)
     return () => {
-
       if (camera) {
         camera.stop();
       }
 
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      if (videoElement.srcObject) {
+        videoElement.srcObject.getTracks().forEach((track) => track.stop());
       }
 
-      console.log("🛑 Camera stopped");
-
+      console.log("Camera stopped");
     };
-
   }, []);
 
   return (
