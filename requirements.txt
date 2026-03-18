@@ -1,0 +1,15 @@
+pip install fastapi
+pip install uvicorn
+pip install python-multipart
+pip install spacy
+pip install scikit-learn
+pip install pdfplumber
+pip install python-docx
+pip install mysql-connector-pythonpip install fastapi
+pip install uvicorn
+pip install python-multipart
+pip install spacy
+pip install scikit-learn
+pip install pdfplumber
+pip install python-docx
+pip install mysql-connector-python
