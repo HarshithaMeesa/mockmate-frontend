@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 function JoinInterview() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [session, setSession] = useState(null);
 
@@ -14,13 +13,8 @@ function JoinInterview() {
   }, [id]);
 
   const joinAsStudent = () => {
-    navigate("/jitsi-room", {
-      state: {
-        sessionId: id,
-        userType: "student",
-        interviewRole: session.role
-      }
-    });
+    const roomLink = `https://meet.jit.si/mockmate-${id}`;
+    window.open(roomLink, "_blank");
   };
 
   if (!session) return <h2>Loading interview...</h2>;

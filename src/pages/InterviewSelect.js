@@ -27,21 +27,16 @@ function InterviewSelect() {
 
       const data = await response.json();
 
-      // copy link
-      await navigator.clipboard.writeText(data.link);
+      const studentLink = data.link;
+      const roomLink = `https://meet.jit.si/mockmate-${data.session_id}`;
 
-      // show link
-      alert(`Interview link copied:\n\n${data.link}`);
+      await navigator.clipboard.writeText(studentLink);
 
-      // lecturer joins immediately
-      navigate("/jitsi-room", {
-        state: {
-          sessionId: data.session_id,
-          userType: "lecturer",
-          interviewRole: role
-        }
-      });
+      alert(
+        `Interview link copied for student:\n\n${studentLink}\n\nLecturer meeting room:\n${roomLink}`
+      );
 
+      window.open(roomLink, "_blank");
     } catch (error) {
       console.error("Error:", error);
       alert("Failed to create interview link");
