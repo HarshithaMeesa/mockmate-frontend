@@ -12,36 +12,40 @@ function InterviewSelect() {
 
   // Lecturer mode
   const createSession = async (role) => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          role: role,
-          time: new Date().toISOString(),
-          questions: []
-        })
-      });
+  try {
+    const newTab = window.open("", "_blank");
 
-      const data = await response.json();
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/create-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        role: role,
+        time: new Date().toISOString(),
+        questions: []
+      })
+    });
 
-      const studentLink = data.link;
-      const roomLink = `https://meet.jit.si/mockmate-${data.session_id}`;
+    const data = await response.json();
 
-      await navigator.clipboard.writeText(studentLink);
+    const studentLink = data.link;
+    const roomLink = `https://meet.jit.si/mockmate-${data.session_id}`;
 
-      alert(
-        `Interview link copied for student:\n\n${studentLink}\n\nLecturer meeting room:\n${roomLink}`
-      );
+    await navigator.clipboard.writeText(studentLink);
 
-      window.open(roomLink, "_blank");
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Failed to create interview link");
+    if (newTab) {
+      newTab.location.href = roomLink;
     }
-  };
+
+    alert(
+      `Interview link copied for student:\n\n${studentLink}\n\nLecturer meeting room:\n${roomLink}`
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Failed to create interview link");
+  }
+};
 
   return (
     <div>
