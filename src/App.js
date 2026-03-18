@@ -8,6 +8,8 @@ import InterviewRoom from "./pages/InterviewRoom";
 import Report from "./pages/Report";
 import JoinInterview from "./pages/JoinInterview";
 import LiveInterviewRoom from "./pages/LiveInterviewRoom";
+import JitsiInterviewRoom from "./pages/JitsiInterviewRoom";
+
 function App() {
   return (
     <Router>
@@ -21,6 +23,7 @@ function App() {
         <Route path="/report" element={<Report />} />
         <Route path="/join/:id" element={<JoinInterview />} />
         <Route path="/live-room" element={<LiveInterviewRoom />} />
+        <Route path="/jitsi-room" element={<JitsiInterviewRoom />} />
       </Routes>
     </Router>
   );

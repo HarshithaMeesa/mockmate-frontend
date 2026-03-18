@@ -14,7 +14,7 @@ function JoinInterview() {
   }, [id]);
 
   const joinAsStudent = () => {
-    navigate("/live-room", {
+    navigate("/jitsi-room", {
       state: {
         sessionId: id,
         userType: "student",

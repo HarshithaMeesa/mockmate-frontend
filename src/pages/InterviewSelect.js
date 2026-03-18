@@ -34,7 +34,7 @@ function InterviewSelect() {
       alert(`Interview link copied:\n\n${data.link}`);
 
       // lecturer joins immediately
-      navigate("/live-room", {
+      navigate("/jitsi-room", {
         state: {
           sessionId: data.session_id,
           userType: "lecturer",
