@@ -14,38 +14,35 @@ function LiveInterviewRoom() {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const screenRef = useRef(null);
+  const localStreamRef = useRef(null);
 
   useEffect(() => {
+    if (!sessionId) return;
+
     const localVideo = localVideoRef.current;
     const remoteVideo = remoteVideoRef.current;
     const screenVideo = screenRef.current;
 
-    if (!sessionId) return;
-
-    let localStream = null;
-
-    socketRef.current = new WebSocket(
-      `${process.env.REACT_APP_WS_URL}/ws/${sessionId}`
-    );
-
     const createPeerConnection = () => {
       if (peerRef.current) return peerRef.current;
 
-      peerRef.current = new RTCPeerConnection({
+      const pc = new RTCPeerConnection({
         iceServers: [
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" }
         ]
       });
 
-      peerRef.current.ontrack = (event) => {
+      pc.ontrack = (event) => {
+        console.log("Remote stream received");
         if (remoteVideo) {
           remoteVideo.srcObject = event.streams[0];
         }
       };
 
-      peerRef.current.onicecandidate = (event) => {
+      pc.onicecandidate = (event) => {
         if (event.candidate && socketRef.current?.readyState === WebSocket.OPEN) {
+          console.log("Sending ICE candidate");
           socketRef.current.send(
             JSON.stringify({
               type: "candidate",
@@ -55,37 +52,55 @@ function LiveInterviewRoom() {
         }
       };
 
-      return peerRef.current;
+      pc.onconnectionstatechange = () => {
+        console.log("Peer connection state:", pc.connectionState);
+      };
+
+      peerRef.current = pc;
+      return pc;
     };
 
-    const startMedia = async () => {
+    const startLocalMedia = async () => {
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({
+        console.log("Starting local media...");
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
 
+        localStreamRef.current = stream;
+
         if (localVideo) {
-          localVideo.srcObject = localStream;
+          localVideo.srcObject = stream;
         }
 
         const pc = createPeerConnection();
 
-        localStream.getTracks().forEach((track) => {
-          pc.addTrack(track, localStream);
+        stream.getTracks().forEach((track) => {
+          pc.addTrack(track, stream);
         });
+
+        console.log("Local media ready");
       } catch (err) {
         console.error("Error accessing camera/mic:", err);
       }
     };
 
-    socketRef.current.onopen = async () => {
-      console.log("WebSocket connected");
-      await startMedia();
+    startLocalMedia();
+
+    socketRef.current = new WebSocket(
+      `${process.env.REACT_APP_WS_URL}/ws/${sessionId}`
+    );
+
+    socketRef.current.onopen = () => {
+      console.log("WebSocket connected:", sessionId);
+      createPeerConnection();
     };
 
     socketRef.current.onmessage = async (event) => {
       const data = JSON.parse(event.data);
+      console.log("Signal received:", data.type);
+
       const pc = createPeerConnection();
 
       try {
@@ -101,26 +116,38 @@ function LiveInterviewRoom() {
               answer
             })
           );
+
+          console.log("Answer sent");
         }
 
         if (data.type === "answer") {
           await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          console.log("Answer applied");
         }
 
         if (data.type === "candidate" && data.candidate) {
           await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          console.log("ICE candidate added");
         }
       } catch (err) {
         console.error("WebRTC signaling error:", err);
       }
     };
 
+    socketRef.current.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+
+    socketRef.current.onclose = () => {
+      console.log("WebSocket closed");
+    };
+
     return () => {
       if (socketRef.current) socketRef.current.close();
       if (peerRef.current) peerRef.current.close();
 
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       if (localVideo && localVideo.srcObject) {
@@ -134,8 +161,17 @@ function LiveInterviewRoom() {
   }, [sessionId]);
 
   const startCall = async () => {
-    if (!peerRef.current || !socketRef.current) return;
-    if (socketRef.current.readyState !== WebSocket.OPEN) return;
+    console.log("Start Call clicked");
+
+    if (!peerRef.current) {
+      console.log("Peer connection not ready");
+      return;
+    }
+
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      console.log("WebSocket not ready");
+      return;
+    }
 
     try {
       const offer = await peerRef.current.createOffer();
@@ -147,6 +183,8 @@ function LiveInterviewRoom() {
           offer
         })
       );
+
+      console.log("Offer sent");
     } catch (err) {
       console.error("Start call error:", err);
     }
@@ -193,6 +231,7 @@ function LiveInterviewRoom() {
               playsInline
               style={{
                 width: "300px",
+                height: "200px",
                 borderRadius: "10px",
                 background: "black"
               }}
