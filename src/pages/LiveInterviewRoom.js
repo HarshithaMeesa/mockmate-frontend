@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import { useLocation } from "react-router-dom";
 
@@ -11,11 +11,11 @@ function LiveInterviewRoom(){
   const videoRef = useRef(null);
   const screenRef = useRef(null);
 
-//   const [stream, setStream] = useState(null);
-//   const [screenStream, setScreenStream] = useState(null);
-
   useEffect(() => {
-    socketRef.current = new WebSocket(`ws://127.0.0.1:8000/ws/${sessionId}`);
+    const videoElement = videoRef.current;
+    const screenElement = screenRef.current;
+
+    socketRef.current = new WebSocket(`${process.env.REACT_APP_WS_URL}/ws/${sessionId}`);
 
     socketRef.current.onmessage = async (event) => {
       const data = JSON.parse(event.data);
@@ -37,55 +37,58 @@ function LiveInterviewRoom(){
       }
     };
 
+    const startMedia = async () => {
+      try {
+        const media = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+
+        if (videoElement) {
+          videoElement.srcObject = media;
+        }
+
+        peerRef.current = new RTCPeerConnection();
+
+        media.getTracks().forEach(track => {
+          peerRef.current.addTrack(track, media);
+        });
+
+        peerRef.current.ontrack = (event) => {
+          const remoteVideo = document.getElementById("remoteVideo");
+          if (remoteVideo) {
+            remoteVideo.srcObject = event.streams[0];
+          }
+        };
+
+        peerRef.current.onicecandidate = (event) => {
+          if (event.candidate && socketRef.current) {
+            socketRef.current.send(JSON.stringify({
+              candidate: event.candidate
+            }));
+          }
+        };
+
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+      }
+    };
+
     startMedia();
 
     return () => {
       if (socketRef.current) socketRef.current.close();
       if (peerRef.current) peerRef.current.close();
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+
+      if (videoElement && videoElement.srcObject) {
+        videoElement.srcObject.getTracks().forEach(track => track.stop());
       }
-      if (screenRef.current && screenRef.current.srcObject) {
-        screenRef.current.srcObject.getTracks().forEach(track => track.stop());
+
+      if (screenElement && screenElement.srcObject) {
+        screenElement.srcObject.getTracks().forEach(track => track.stop());
       }
     };
   }, [sessionId]);
-
-  const startMedia = async () => {
-    try {
-      const media = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
-
-      videoRef.current.srcObject = media;
-    //   setStream(media);
-
-      peerRef.current = new RTCPeerConnection();
-
-      media.getTracks().forEach(track => {
-        peerRef.current.addTrack(track, media);
-      });
-
-      peerRef.current.ontrack = (event) => {
-        const remoteVideo = document.getElementById("remoteVideo");
-        if (remoteVideo) {
-          remoteVideo.srcObject = event.streams[0];
-        }
-      };
-
-      peerRef.current.onicecandidate = (event) => {
-        if (event.candidate && socketRef.current) {
-          socketRef.current.send(JSON.stringify({
-            candidate: event.candidate
-          }));
-        }
-      };
-
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-    }
-  };
 
   const startCall = async () => {
     if (!peerRef.current || !socketRef.current) return;
@@ -102,8 +105,9 @@ function LiveInterviewRoom(){
         video: true
       });
 
-      screenRef.current.srcObject = displayStream;
-    //   setScreenStream(displayStream);
+      if (screenRef.current) {
+        screenRef.current.srcObject = displayStream;
+      }
 
     } catch (err) {
       console.error("Screen share error:", err);
