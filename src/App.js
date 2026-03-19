@@ -34,7 +34,7 @@ function App() {
         {/* <Route path="/lecturer-report/:sessionId" element={<LecturerReport />} /> */}
         <Route path="/lecturer-evaluator/:sessionId" element={<LecturerMeetingEvaluator />} /><Route path="/lecturer-meeting-evaluator" element={<LecturerMeetingEvaluator />} />
         <Route path="/lecturer-report/:sessionId" element={<LecturerReport />} />
-      
+    
       </Routes>
     </Router>
   );
