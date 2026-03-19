@@ -14,7 +14,6 @@ import LecturerAnswerCapture from "./pages/LecturerAnswerCapture";
 import LecturerReport from "./pages/LecturerReport";
 
 import LecturerMeetingEvaluator from "./pages/LecturerMeetingEvaluator";
-import LecturerReport from "./pages/LecturerReport";
 
 function App() {
   return (
