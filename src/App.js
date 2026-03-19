@@ -31,7 +31,6 @@ function App() {
         <Route path="/live-room" element={<LiveInterviewRoom />} />
         <Route path="/jitsi-room" element={<JitsiInterviewRoom />} />
         <Route path="/lecturer-capture" element={<LecturerAnswerCapture />} />
-        {/* <Route path="/lecturer-report/:sessionId" element={<LecturerReport />} /> */}
         <Route path="/lecturer-evaluator/:sessionId" element={<LecturerMeetingEvaluator />} /><Route path="/lecturer-meeting-evaluator" element={<LecturerMeetingEvaluator />} />
         <Route path="/lecturer-report/:sessionId" element={<LecturerReport />} />
     
