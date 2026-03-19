@@ -7,7 +7,7 @@ function LecturerReport() {
   const [report, setReport] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/session/${sessionId}/pro-report`)
+    fetch(`${process.env.REACT_APP_API_URL}/session/${sessionId}/meeting-report`)
       .then((res) => res.json())
       .then((data) => setReport(data));
   }, [sessionId]);
@@ -27,15 +27,18 @@ function LecturerReport() {
     <div>
       <Navbar />
       <div style={{ padding: "40px" }}>
-        <h1>Pro Lecturer Report</h1>
+        <h1>Lecturer AI Report</h1>
 
-        <p><b>Interview Role:</b> {report.role}</p>
-        <p><b>Time:</b> {report.time}</p>
-        <p><b>Average Score:</b> {report.average_score}</p>
+        <p><b>Overall Score:</b> {report.overall_score}</p>
+        <p><b>Communication:</b> {report.communication_score}</p>
+        <p><b>Clarity:</b> {report.clarity_score}</p>
+        <p><b>Confidence:</b> {report.confidence_score}</p>
+        <p><b>Technical Depth:</b> {report.technical_depth_score}</p>
+        <p><b>Relevance:</b> {report.relevance_score}</p>
 
         <div style={{ marginTop: "20px", background: "#f3f3f3", padding: "20px", borderRadius: "10px" }}>
-          <h3>Summary</h3>
-          <p>{report.summary}</p>
+          <h3>Transcript Summary</h3>
+          <p>{report.transcript_summary}</p>
 
           <h3>Key Points</h3>
           <ul>{report.key_points?.map((item, idx) => <li key={idx}>{item}</li>)}</ul>
@@ -54,13 +57,13 @@ function LecturerReport() {
         </div>
 
         <div style={{ marginTop: "30px" }}>
-          <h2>Answer-Level Details</h2>
-          {report.details?.map((item, idx) => (
+          <h2>Answer Breakdown</h2>
+          {report.answer_breakdown?.map((item, idx) => (
             <div key={idx} style={{ marginTop: "20px", padding: "20px", border: "1px solid #ddd", borderRadius: "10px" }}>
               <p><b>Question:</b> {item.question}</p>
-              <p><b>Answer:</b> {item.answer}</p>
-              <p><b>Overall Score:</b> {item.evaluation?.overall_score}</p>
-              <p><b>Summary:</b> {item.evaluation?.summary}</p>
+              <p><b>Answer Summary:</b> {item.answer_summary}</p>
+              <p><b>Score:</b> {item.score}</p>
+              <p><b>Feedback:</b> {item.feedback}</p>
             </div>
           ))}
         </div>

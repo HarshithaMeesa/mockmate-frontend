@@ -13,6 +13,9 @@ import JitsiInterviewRoom from "./pages/JitsiInterviewRoom";
 import LecturerAnswerCapture from "./pages/LecturerAnswerCapture";
 import LecturerReport from "./pages/LecturerReport";
 
+import LecturerMeetingEvaluator from "./pages/LecturerMeetingEvaluator";
+import LecturerReport from "./pages/LecturerReport";
+
 function App() {
   return (
     <Router>
@@ -29,6 +32,9 @@ function App() {
         <Route path="/jitsi-room" element={<JitsiInterviewRoom />} />
         <Route path="/lecturer-capture" element={<LecturerAnswerCapture />} />
         <Route path="/lecturer-report/:sessionId" element={<LecturerReport />} />
+        <Route path="/lecturer-evaluator/:sessionId" element={<LecturerMeetingEvaluator />} /><Route path="/lecturer-meeting-evaluator" element={<LecturerMeetingEvaluator />} />
+        <Route path="/lecturer-report/:sessionId" element={<LecturerReport />} />
+      
       </Routes>
     </Router>
   );
