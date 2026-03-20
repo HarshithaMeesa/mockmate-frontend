@@ -8,12 +8,11 @@ function LecturerReport() {
   const [report, setReport] = useState(null);
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/session/${sessionId}/meeting-report`)
-      .then((res) => res.json())
-      .then((data) => setReport(data))
-      .catch(() => setReport({ error: true }));
-  }, [sessionId]);
-
+  fetch(`${process.env.REACT_APP_API_URL}/session/${sessionId}/meeting-report`)
+    .then((res) => res.json())
+    .then((data) => setReport(data))
+    .catch(() => setReport({ message: "No meeting evaluation available yet" }));
+}, [sessionId]);
   const safeReport = useMemo(() => {
     const r = report || {};
 

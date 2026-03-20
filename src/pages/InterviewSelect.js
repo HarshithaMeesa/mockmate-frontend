@@ -25,7 +25,7 @@ function InterviewSelect() {
       });
 
       const data = await response.json();
-
+      localStorage.setItem("lecturer_session_id", data.session_id);
       const studentLink = data.link;
       const roomLink = `https://meet.jit.si/mockmate-${data.session_id}`;
 
