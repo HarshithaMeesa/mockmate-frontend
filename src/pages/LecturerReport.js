@@ -11,93 +11,30 @@ function LecturerReport() {
     fetch(`${process.env.REACT_APP_API_URL}/session/${sessionId}/meeting-report`)
       .then((res) => res.json())
       .then((data) => setReport(data))
-      .catch(() => setReport({}));
+      .catch(() => setReport({ error: true }));
   }, [sessionId]);
 
   const safeReport = useMemo(() => {
     const r = report || {};
 
     return {
-      overall_score: r.overall_score ?? 84,
-      communication_score: r.communication_score ?? 88,
-      clarity_score: r.clarity_score ?? 86,
-      confidence_score: r.confidence_score ?? 81,
-      technical_depth_score: r.technical_depth_score ?? 79,
-      relevance_score: r.relevance_score ?? 87,
-      transcript_summary:
-        r.transcript_summary ||
-        "The candidate demonstrated strong communication and stable relevance across most responses. Technical understanding was good overall, though some answers would benefit from more specific implementation examples and sharper technical articulation.",
-      key_points:
-        r.key_points?.length > 0
-          ? r.key_points
-          : [
-              "Strong interview presence with good verbal flow.",
-              "Consistent relevance to the interviewer’s questions.",
-              "Moderate-to-strong technical understanding.",
-              "Shows readiness for further interview rounds with targeted refinement."
-            ],
-      strengths:
-        r.strengths?.length > 0
-          ? r.strengths
-          : [
-              "Maintained strong verbal clarity throughout the interview.",
-              "Structured answers in a logical and easy-to-follow manner.",
-              "Showed good awareness of role expectations and practical responsibilities.",
-              "Responded with relevant examples in behavioral questions."
-            ],
-      weaknesses:
-        r.weaknesses?.length > 0
-          ? r.weaknesses
-          : [
-              "Should include deeper technical justification in implementation-related answers.",
-              "Could improve confidence during technical explanation segments.",
-              "Some examples were strong conceptually but lacked measurable outcomes.",
-              "Needs slightly more precision when discussing tools and workflows."
-            ],
-      improvement_tips:
-        r.improvement_tips?.length > 0
-          ? r.improvement_tips
-          : [
-              "Add one concrete project example in every technical answer.",
-              "State decisions in a problem → approach → outcome format.",
-              "Practice slightly slower delivery for complex technical concepts.",
-              "Include measurable results whenever discussing past work."
-            ],
-      final_recommendation:
-        r.final_recommendation ||
-        "The student demonstrated a well-rounded and interview-ready profile with strong communication, clear thought structure, and relevant response quality. With modest improvement in technical depth and precision, the candidate appears suitable for advanced mock rounds and further placement-oriented preparation.",
-      answer_breakdown:
-        r.answer_breakdown?.length > 0
-          ? r.answer_breakdown
-          : [
-              {
-                question:
-                  "Tell me about yourself and walk me through your background relevant to this role.",
-                answer_summary:
-                  "The student gave a well-structured self-introduction covering academic background, interest in software development, and a concise overview of relevant projects.",
-                score: 86,
-                feedback:
-                  "Strong opening answer with clear structure and good relevance. Could be improved further by adding one standout project achievement or measurable impact."
-              },
-              {
-                question:
-                  "Can you explain a project where you used problem solving to overcome a technical issue?",
-                answer_summary:
-                  "The student described debugging and improving a project workflow, explained the obstacle clearly, and communicated the reasoning process behind the solution.",
-                score: 82,
-                feedback:
-                  "Good clarity and problem ownership. Technical explanation was solid, but the answer would be stronger with more detail on the exact tools, logic, or measurable result."
-              },
-              {
-                question:
-                  "Why do you want this role, and how do you think you fit into it?",
-                answer_summary:
-                  "The student connected personal interest, learning goals, and prior experience to the role, showing sincere motivation and a reasonable understanding of expectations.",
-                score: 78,
-                feedback:
-                  "Relevant and positive response. To improve, the student should align the answer more directly with the company or role responsibilities rather than staying at a general level."
-              }
-            ]
+      student_name: r.student_name || "Not available",
+      role: r.role || "Not available",
+      lecturer_name: r.lecturer_name || "Not available",
+      date: r.date || r.time || "Not available",
+      overall_score: typeof r.overall_score === "number" ? r.overall_score : null,
+      communication_score: typeof r.communication_score === "number" ? r.communication_score : null,
+      clarity_score: typeof r.clarity_score === "number" ? r.clarity_score : null,
+      confidence_score: typeof r.confidence_score === "number" ? r.confidence_score : null,
+      technical_depth_score: typeof r.technical_depth_score === "number" ? r.technical_depth_score : null,
+      relevance_score: typeof r.relevance_score === "number" ? r.relevance_score : null,
+      transcript_summary: r.transcript_summary || "",
+      key_points: Array.isArray(r.key_points) ? r.key_points : [],
+      strengths: Array.isArray(r.strengths) ? r.strengths : [],
+      weaknesses: Array.isArray(r.weaknesses) ? r.weaknesses : [],
+      improvement_tips: Array.isArray(r.improvement_tips) ? r.improvement_tips : [],
+      final_recommendation: r.final_recommendation || "",
+      answer_breakdown: Array.isArray(r.answer_breakdown) ? r.answer_breakdown : []
     };
   }, [report]);
 
@@ -109,7 +46,11 @@ function LecturerReport() {
     { label: "Relevance", value: safeReport.relevance_score, color: theme.accent }
   ];
 
-  const scorePercent = Math.max(0, Math.min(100, safeReport.overall_score));
+  const hasAnyScores = performanceData.some((item) => typeof item.value === "number");
+  const scorePercent =
+    typeof safeReport.overall_score === "number"
+      ? Math.max(0, Math.min(100, safeReport.overall_score))
+      : null;
 
   if (!report) {
     return (
@@ -127,12 +68,27 @@ function LecturerReport() {
     );
   }
 
+  if (report.error) {
+    return (
+      <div style={{ background: "#F4F7FB", minHeight: "100vh" }}>
+        <Navbar />
+        <div style={{ maxWidth: "1260px", margin: "0 auto", padding: "32px 24px 48px" }}>
+          <div style={loadingCard}>
+            <h2 style={{ marginTop: 0, color: theme.text }}>Unable to load report</h2>
+            <p style={{ marginBottom: 0, color: theme.subtext }}>
+              Please try again later.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: "linear-gradient(180deg,#eef4ff 0%, #f4f7fb 40%, #f8fafc 100%)", minHeight: "100vh" }}>
       <Navbar />
 
       <div style={{ maxWidth: "1260px", margin: "0 auto", padding: "32px 24px 48px" }}>
-        {/* HERO */}
         <section style={heroSection}>
           <div>
             <div style={pillStyle}>Lecturer-Led Interview Assessment Report</div>
@@ -145,47 +101,45 @@ function LecturerReport() {
           </div>
 
           <div style={topMetaCard}>
-            <MetaRow label="Student" value="Harshitha M." />
-            <MetaRow label="Role" value="Software Engineer" />
-            <MetaRow label="Lecturer" value="Prof. S. Reddy" />
-            <MetaRow label="Date" value="20 March 2026" />
+            <MetaRow label="Student" value={safeReport.student_name} />
+            <MetaRow label="Role" value={safeReport.role} />
+            <MetaRow label="Lecturer" value={safeReport.lecturer_name} />
+            <MetaRow label="Date" value={safeReport.date} />
             <MetaRow label="Session ID" value={sessionId} isLast />
           </div>
         </section>
 
-        {/* TOP STATS */}
         <section style={gridFour}>
           <StatCard
             title="Overall Score"
-            value={`${safeReport.overall_score}/100`}
-            chip="Strong Performance"
-            chipBg="#DBEAFE"
-            chipColor="#1E3A8A"
+            value={formatScore(safeReport.overall_score)}
+            chip={getScoreChip(safeReport.overall_score).text}
+            chipBg={getScoreChip(safeReport.overall_score).bg}
+            chipColor={getScoreChip(safeReport.overall_score).color}
           />
           <StatCard
             title="Communication"
-            value={`${safeReport.communication_score}/100`}
-            chip="Clear & Fluent"
+            value={formatScore(safeReport.communication_score)}
+            chip="Verbal Delivery"
             chipBg="#DCFCE7"
             chipColor="#166534"
           />
           <StatCard
             title="Technical Depth"
-            value={`${safeReport.technical_depth_score}/100`}
-            chip="Moderately Strong"
+            value={formatScore(safeReport.technical_depth_score)}
+            chip="Knowledge Level"
             chipBg="#FFF7ED"
             chipColor="#C2410C"
           />
           <StatCard
             title="Confidence"
-            value={`${safeReport.confidence_score}/100`}
-            chip="Needs Slight Polish"
+            value={formatScore(safeReport.confidence_score)}
+            chip="Presentation Style"
             chipBg="#FEE2E2"
             chipColor="#B91C1C"
           />
         </section>
 
-        {/* PERFORMANCE + DONUT */}
         <section style={layoutTwo}>
           <div style={card}>
             <h2 style={sectionTitle}>Performance Breakdown</h2>
@@ -193,25 +147,30 @@ function LecturerReport() {
               Category-wise lecturer evaluation based on answer quality and delivery.
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "8px" }}>
-              {performanceData.map((item, index) => (
-                <div key={index}>
-                  <div style={barLabelRow}>
-                    <span>{item.label}</span>
-                    <span>{item.value}</span>
+            {hasAnyScores ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "8px" }}>
+                {performanceData.map((item, index) => (
+                  <div key={index}>
+                    <div style={barLabelRow}>
+                      <span>{item.label}</span>
+                      <span>{typeof item.value === "number" ? item.value : "N/A"}</span>
+                    </div>
+                    <div style={track}>
+                      <div
+                        style={{
+                          ...fill,
+                          width: typeof item.value === "number" ? `${item.value}%` : "0%",
+                          background: item.color,
+                          opacity: typeof item.value === "number" ? 1 : 0.2
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div style={track}>
-                    <div
-                      style={{
-                        ...fill,
-                        width: `${item.value}%`,
-                        background: item.color
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyBox text="No score data available yet." />
+            )}
           </div>
 
           <div style={card}>
@@ -220,82 +179,92 @@ function LecturerReport() {
               Overall achievement compared to remaining improvement space.
             </p>
 
-            <div style={donutWrap}>
-              <div
-                style={{
-                  ...donut,
-                  background: `conic-gradient(${theme.primary} 0 ${scorePercent}%, #DBE7F7 ${scorePercent}% 100%)`
-                }}
-              >
-                <div style={donutInner} />
-                <div style={donutCenter}>
-                  <h2 style={{ margin: 0, fontSize: "34px" }}>{scorePercent}%</h2>
-                  <p style={{ margin: "4px 0 0", color: theme.subtext, fontSize: "13px", fontWeight: "600" }}>
-                    Final Score
-                  </p>
+            {scorePercent !== null ? (
+              <>
+                <div style={donutWrap}>
+                  <div
+                    style={{
+                      ...donut,
+                      background: `conic-gradient(${theme.primary} 0 ${scorePercent}%, #DBE7F7 ${scorePercent}% 100%)`
+                    }}
+                  >
+                    <div style={donutInner} />
+                    <div style={donutCenter}>
+                      <h2 style={{ margin: 0, fontSize: "34px" }}>{scorePercent}%</h2>
+                      <p style={{ margin: "4px 0 0", color: theme.subtext, fontSize: "13px", fontWeight: "600" }}>
+                        Final Score
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div style={summaryBox}>
-              {safeReport.transcript_summary}
-            </div>
+                <div style={summaryBox}>
+                  {safeReport.transcript_summary || "No transcript summary available yet."}
+                </div>
+              </>
+            ) : (
+              <EmptyBox text="No overall score available yet." />
+            )}
           </div>
         </section>
 
-        {/* STRENGTHS / WEAKNESSES */}
         <section style={gridTwo}>
           <div style={{ ...card, background: "#ECFDF5", border: "1px solid #BBF7D0" }}>
             <h2 style={{ ...sectionTitle, color: "#166534" }}>Key Strengths</h2>
-            <ul style={cleanList}>
-              {safeReport.strengths.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
+            {safeReport.strengths.length > 0 ? (
+              <ul style={cleanList}>
+                {safeReport.strengths.map((item, idx) => <li key={idx}>{item}</li>)}
+              </ul>
+            ) : (
+              <EmptyListText text="No strengths available." />
+            )}
           </div>
 
           <div style={{ ...card, background: "#FEF2F2", border: "1px solid #FECACA" }}>
             <h2 style={{ ...sectionTitle, color: "#B91C1C" }}>Areas to Improve</h2>
-            <ul style={cleanList}>
-              {safeReport.weaknesses.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
+            {safeReport.weaknesses.length > 0 ? (
+              <ul style={cleanList}>
+                {safeReport.weaknesses.map((item, idx) => <li key={idx}>{item}</li>)}
+              </ul>
+            ) : (
+              <EmptyListText text="No weaknesses available." />
+            )}
           </div>
         </section>
 
-        {/* KEY TAKEAWAYS / TIPS */}
         <section style={gridTwo}>
           <div style={{ ...card, background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
             <h2 style={sectionTitle}>Key Takeaways</h2>
-            <ul style={cleanList}>
-              {safeReport.key_points.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
+            {safeReport.key_points.length > 0 ? (
+              <ul style={cleanList}>
+                {safeReport.key_points.map((item, idx) => <li key={idx}>{item}</li>)}
+              </ul>
+            ) : (
+              <EmptyListText text="No key points available." />
+            )}
           </div>
 
           <div style={{ ...card, background: "#FFF7ED", border: "1px solid #FED7AA" }}>
             <h2 style={sectionTitle}>Improvement Tips</h2>
-            <ul style={cleanList}>
-              {safeReport.improvement_tips.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
+            {safeReport.improvement_tips.length > 0 ? (
+              <ul style={cleanList}>
+                {safeReport.improvement_tips.map((item, idx) => <li key={idx}>{item}</li>)}
+              </ul>
+            ) : (
+              <EmptyListText text="No improvement tips available." />
+            )}
           </div>
         </section>
 
-        {/* FINAL RECOMMENDATION */}
         <section style={recommendationBox}>
           <h3 style={{ margin: "0 0 10px", color: "#1E3A8A", fontSize: "22px" }}>
             Final Recommendation
           </h3>
           <p style={{ margin: 0, lineHeight: "1.8", color: "#334155" }}>
-            {safeReport.final_recommendation}
+            {safeReport.final_recommendation || "No final recommendation available."}
           </p>
         </section>
 
-        {/* ANSWER BREAKDOWN */}
         <section style={{ marginTop: "22px" }}>
           <div style={card}>
             <h2 style={sectionTitle}>Answer Breakdown</h2>
@@ -303,33 +272,49 @@ function LecturerReport() {
               Detailed question-by-question lecturer-style feedback.
             </p>
 
-            {safeReport.answer_breakdown.map((item, idx) => (
-              <div key={idx} style={questionCard}>
-                <div style={questionHead}>
-                  <h3 style={{ margin: 0, fontSize: "20px" }}>Question {idx + 1}</h3>
-                  <span
-                    style={{
-                      ...scoreBadge,
-                      background:
-                        item.score > 80 ? "#DCFCE7" : item.score > 70 ? "#DBEAFE" : "#FFF7ED",
-                      color:
-                        item.score > 80 ? "#166534" : item.score > 70 ? "#1E3A8A" : "#C2410C"
-                    }}
-                  >
-                    Score: {item.score}/100
-                  </span>
+            {safeReport.answer_breakdown.length > 0 ? (
+              safeReport.answer_breakdown.map((item, idx) => (
+                <div key={idx} style={questionCard}>
+                  <div style={questionHead}>
+                    <h3 style={{ margin: 0, fontSize: "20px" }}>Question {idx + 1}</h3>
+                    <span
+                      style={{
+                        ...scoreBadge,
+                        background:
+                          typeof item.score === "number"
+                            ? item.score > 80
+                              ? "#DCFCE7"
+                              : item.score > 70
+                              ? "#DBEAFE"
+                              : "#FFF7ED"
+                            : "#E2E8F0",
+                        color:
+                          typeof item.score === "number"
+                            ? item.score > 80
+                              ? "#166534"
+                              : item.score > 70
+                              ? "#1E3A8A"
+                              : "#C2410C"
+                            : "#475569"
+                      }}
+                    >
+                      {typeof item.score === "number" ? `Score: ${item.score}/100` : "Score: N/A"}
+                    </span>
+                  </div>
+
+                  <p style={label}>Question</p>
+                  <p style={body}>{item.question || "Not available"}</p>
+
+                  <p style={label}>Answer Summary</p>
+                  <p style={body}>{item.answer_summary || "Not available"}</p>
+
+                  <p style={label}>Feedback</p>
+                  <p style={{ ...body, marginBottom: 0 }}>{item.feedback || "Not available"}</p>
                 </div>
-
-                <p style={label}>Question</p>
-                <p style={body}>{item.question}</p>
-
-                <p style={label}>Answer Summary</p>
-                <p style={body}>{item.answer_summary}</p>
-
-                <p style={label}>Feedback</p>
-                <p style={{ ...body, marginBottom: 0 }}>{item.feedback}</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <EmptyBox text="No answer breakdown available yet." />
+            )}
 
             <button
               style={{ ...buttonStyles.dark, marginTop: "22px" }}
@@ -341,7 +326,7 @@ function LecturerReport() {
         </section>
 
         <p style={footerNote}>
-          Generated by MockMate AI • Lecturer-Led Mock Interview Assessment • Demo Preview
+          Generated by MockMate AI • Lecturer-Led Mock Interview Assessment
         </p>
       </div>
     </div>
@@ -387,6 +372,45 @@ function StatCard({ title, value, chip, chipBg, chipColor }) {
       </span>
     </div>
   );
+}
+
+function EmptyBox({ text }) {
+  return (
+    <div
+      style={{
+        marginTop: "10px",
+        padding: "18px",
+        borderRadius: "16px",
+        background: "#F8FAFC",
+        border: "1px solid #E2E8F0",
+        color: "#64748B",
+        lineHeight: "1.7"
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+function EmptyListText({ text }) {
+  return <p style={{ margin: 0, color: "#64748B", lineHeight: "1.8" }}>{text}</p>;
+}
+
+function formatScore(value) {
+  return typeof value === "number" ? `${value}/100` : "Not available";
+}
+
+function getScoreChip(value) {
+  if (typeof value !== "number") {
+    return { text: "No Score Yet", bg: "#E2E8F0", color: "#475569" };
+  }
+  if (value >= 85) {
+    return { text: "Strong Performance", bg: "#DBEAFE", color: "#1E3A8A" };
+  }
+  if (value >= 70) {
+    return { text: "Good Performance", bg: "#DCFCE7", color: "#166534" };
+  }
+  return { text: "Needs Improvement", bg: "#FEF3C7", color: "#C2410C" };
 }
 
 const loadingCard = {
