@@ -3,10 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import PublicNavbar from "../components/PublicNavbar";
 import { theme, cardStyle, buttonStyles } from "../styles/theme";
 
-function Login() {
+function Signup() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
+    name: "",
     email: "",
     password: ""
   });
@@ -15,7 +16,7 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
 
     localStorage.setItem("mockmate_logged_in", "true");
@@ -28,12 +29,24 @@ function Login() {
 
       <div style={{ maxWidth: "520px", margin: "0 auto", padding: "60px 24px" }}>
         <div style={cardStyle}>
-          <h1 style={{ marginTop: 0, color: theme.text }}>Login</h1>
+          <h1 style={{ marginTop: 0, color: theme.text }}>Create Account</h1>
           <p style={{ color: theme.subtext, marginBottom: "24px" }}>
-            Sign in to continue to your interview dashboard.
+            Join MockMate AI and start preparing smarter for interviews.
           </p>
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSignup}>
+            <div style={{ marginBottom: "18px" }}>
+              <label style={labelStyle}>Full Name</label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                style={inputStyle}
+              />
+            </div>
+
             <div style={{ marginBottom: "18px" }}>
               <label style={labelStyle}>Email</label>
               <input
@@ -59,14 +72,14 @@ function Login() {
             </div>
 
             <button type="submit" style={{ ...buttonStyles.primary, width: "100%" }}>
-              Login
+              Sign Up
             </button>
           </form>
 
           <p style={{ marginTop: "20px", color: theme.subtext }}>
-            Don’t have an account?{" "}
-            <Link to="/signup" style={{ color: theme.primary, fontWeight: "700", textDecoration: "none" }}>
-              Sign Up
+            Already have an account?{" "}
+            <Link to="/login" style={{ color: theme.primary, fontWeight: "700", textDecoration: "none" }}>
+              Login
             </Link>
           </p>
         </div>
@@ -92,4 +105,4 @@ const inputStyle = {
   boxSizing: "border-box"
 };
 
-export default Login;
+export default Signup;
