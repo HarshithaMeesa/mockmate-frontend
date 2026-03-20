@@ -36,8 +36,8 @@ function BehaviorMonitor() {
         if (!videoElement) return;
         await faceDetection.send({ image: videoElement });
       },
-      width: 640,
-      height: 480
+      width: 320,
+      height: 240
     });
 
     camera.start();
@@ -56,16 +56,31 @@ function BehaviorMonitor() {
   }, []);
 
   return (
-    <video
-      ref={videoRef}
+    <div
       style={{
-        width: "300px",
-        borderRadius: "10px",
-        marginTop: "20px"
+        width: "100%",
+        borderRadius: "14px",
+        overflow: "hidden",
+        background: "#E2E8F0",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
       }}
-      autoPlay
-      muted
-    />
+    >
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        style={{
+          width: "100%",
+          height: "220px",
+          objectFit: "cover",
+          display: "block",
+          borderRadius: "14px"
+        }}
+      />
+    </div>
   );
 }
 
